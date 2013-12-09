@@ -54,7 +54,7 @@ class EditingSession
         }
 
         $lines = $this->buffer->getLines($range);
-        $indent = $this->leftWhitespacesOf(reset($lines));
+        $indent = $this->leftWhitespacesOf($lines[0]);
 
         $this->buffer->replace($range, array($this->whitespace($indent) . $call));
     }
