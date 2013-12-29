@@ -17,6 +17,8 @@ use QafooLabs\Refactoring\Domain\Services\Editor;
  */
 class ExtractMethodObject
 {
+    const DEFAULT_METHOD_NAME = 'invoke';
+
     /**
      * @var VariableScanner
      */
@@ -37,10 +39,6 @@ class ExtractMethodObject
     private $newFileName;
     private $newClassName;
 
-
-
-
-
     public function __construct(VariableScanner $variableScanner, CodeAnalysis $codeAnalysis, Editor $editor)
     {
         $this->variableScanner = $variableScanner;
@@ -59,10 +57,9 @@ class ExtractMethodObject
         $this->newFileName  = $newFileName;
         $this->newClassName = $this->newClassName;
 
-        /*
         $this->assertSelectedRangeIsInsideMethod();
 
-        $isStatic = $this->codeAnalysis->isMethodStatic($this->file, $this->extractRange);
+        /*
         $methodRange = $this->codeAnalysis->findMethodRange($this->file, $this->extractRange);
         $selectedCode = $this->extractRange->sliceCode($this->file->getCode());
 
@@ -72,8 +69,8 @@ class ExtractMethodObject
         $buffer = $this->editor->openBuffer($this->file);
 
         $newMethod = new MethodSignature(
-            $newMethodName,
-            $isStatic ? MethodSignature::IS_STATIC : 0,
+            self::DEFAULT_METHOD_NAME,
+            MethodSignature::IS_PUBLIC
             $methodVariables->variablesFromSelectionUsedBefore($extractVariables),
             $methodVariables->variablesFromSelectionUsedAfter($extractVariables)
         );
