@@ -39,6 +39,7 @@ ______      __           _             _              ______
     {
         $commands = parent::getDefaultCommands();
         $commands[] = new Commands\ExtractMethodCommand();
+        $commands[] = new Commands\ExtractMethodObjectCommand();
         $commands[] = new Commands\RenameLocalVariableCommand();
         $commands[] = new Commands\ConvertLocalToInstanceVariableCommand();
         $commands[] = new Commands\FixClassNamesCommand();
