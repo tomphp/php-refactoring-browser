@@ -31,7 +31,7 @@ class PatchBuffer implements EditorBuffer
 
     public function getLines(LineRange $range)
     {
-        return $this->builder->getLines($range->getStart(), $range->getEnd());
+        return $this->builder->getOriginalLines($range->getStart(), $range->getEnd());
     }
 
     public function replace(LineRange $range, array $newLines)

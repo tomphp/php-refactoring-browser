@@ -51,6 +51,21 @@ class PatchBuilder
     }
 
     /**
+     * @param int $start
+     * @param int $end
+     *
+     * @return string[]
+     */
+    public function getOriginalLines($start, $end)
+    {
+        return array_slice(
+            $this->buffer->getOriginalContents(),
+            $start - 1,
+            $end - $start + 1
+        );
+    }
+
+    /**
      * Change Token in given line from old to new.
      *
      * @param int $originalLine

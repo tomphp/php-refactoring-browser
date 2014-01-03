@@ -289,7 +289,8 @@ Feature: Extract Method
             """
             --- a/vfs://project/src/ExtractMethodFromBlock.php
             +++ b/vfs://project/src/ExtractMethodFromBlock.php
-            @@ -5,6 +5,11 @@
+            @@ -4,7 +4,12 @@
+                 public function operation()
                  {
                      for ($i=0; $i<5; $i++) {
             -            echo "Hello World";
@@ -302,5 +303,6 @@ Feature: Extract Method
             +        echo "Hello World";
             +    }
              }
+
             """
 
