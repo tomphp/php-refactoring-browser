@@ -22,11 +22,11 @@ use Symfony\Component\Console\Command\Command;
 use QafooLabs\Refactoring\Application\ExtractMethodObject;
 use QafooLabs\Refactoring\Adapters\PHPParser\ParserVariableScanner;
 use QafooLabs\Refactoring\Adapters\TokenReflection\StaticCodeAnalysis;
-use QafooLabs\Refactoring\Adapters\Patches\PatchEditor;
 use QafooLabs\Refactoring\Adapters\Symfony\OutputPatchCommand;
 
 use QafooLabs\Refactoring\Domain\Model\LineRange;
 use QafooLabs\Refactoring\Domain\Model\File;
+use QafooLabs\Refactoring\Adapters\PatchBuilder\PatchEditor;
 
 /**
  * Symfony Adapter to execute the Extract Method Object Refactoring
