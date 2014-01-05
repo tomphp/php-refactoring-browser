@@ -36,4 +36,21 @@ class LineRangeTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($range->isInRange(1));
         $this->assertFalse($range->isInRange(5));
     }
+
+    public function testSliceCode()
+    {
+        $range = LineRange::fromLines(2, 5);
+
+        $code = "line1\n"
+            . "line2\n"
+            . "line3\n"
+            . "line4\n"
+            . "line5\n"
+            . "line6\n";
+
+        $this->assertEquals(
+            array('line2', 'line3', 'line4', 'line5'),
+            $range->sliceCode($code)
+        );
+    }
 }

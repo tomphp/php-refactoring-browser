@@ -73,15 +73,10 @@ class LineRange
 
     public function sliceCode($code)
     {
-        $selectedCode = explode("\n", $code);
-        $numLines = count($selectedCode);
-
-        for ($i = 0; $i < $numLines; $i++) {
-            if ( ! $this->isInRange($i+1)) {
-                unset($selectedCode[$i]);
-            }
-        }
-
-        return array_values($selectedCode);
+        return array_slice(
+            explode("\n", $code),
+            $this->getStart() - 1,
+            $this->getEnd() - $this->getStart() + 1
+        );
     }
 }

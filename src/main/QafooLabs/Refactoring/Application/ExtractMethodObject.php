@@ -59,28 +59,22 @@ class ExtractMethodObject
 
         $this->assertSelectedRangeIsInsideMethod();
 
-        /*
         $methodRange = $this->codeAnalysis->findMethodRange($this->file, $this->extractRange);
         $selectedCode = $this->extractRange->sliceCode($this->file->getCode());
 
         $extractVariables = $this->variableScanner->scanForVariables($this->file, $this->extractRange);
         $methodVariables = $this->variableScanner->scanForVariables($this->file, $methodRange);
 
-        $buffer = $this->editor->openBuffer($this->file);
-
         $newMethod = new MethodSignature(
             self::DEFAULT_METHOD_NAME,
-            MethodSignature::IS_PUBLIC
+            MethodSignature::IS_PUBLIC,
             $methodVariables->variablesFromSelectionUsedBefore($extractVariables),
             $methodVariables->variablesFromSelectionUsedAfter($extractVariables)
         );
 
-        $session = new EditingSession($buffer);
-        $session->replaceRangeWithMethodCall($this->extractRange, $newMethod);
-        $session->addMethod($methodRange->getEnd(), $newMethod, $selectedCode);
+        $buffer = $this->writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode);
 
         $this->editor->save();
-        */
     }
 
     private function assertSelectedRangeIsInsideMethod()
@@ -88,5 +82,37 @@ class ExtractMethodObject
         if ( ! $this->codeAnalysis->isInsideMethod($this->file, $this->extractRange)) {
             throw RefactoringException::rangeIsNotInsideMethod($this->extractRange);
         }
+    }
+
+    private function replaceCodeWithCall($file, $newClassName, $newFileName)
+    {
+        $buffer = $this->editor->openBuffer($file);
+        $buffer->replace($this->extractRange, array(
+            '        $object = new ' . $newClassName . '();',
+            '        $object->invoke();'
+        ));
+
+        $buffer = $this->editor->openBuffer(new File($newFileName, ''));
+
+        $buffer->append(0, array(
+            '<?php',
+            '',
+            'class ' . $newClassName,
+            ' {',
+        ));
+
+        return $buffer;
+    }
+
+    private function writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode)
+    {
+        $buffer = $this->replaceCodeWithCall($file, $newClassName, $newFileName);
+
+        $session = new EditingSession($buffer);
+        $session->addMethod(0, $newMethod, $selectedCode);
+
+        $buffer->append(0, array('}'));
+
+        return $buffer;
     }
 }
