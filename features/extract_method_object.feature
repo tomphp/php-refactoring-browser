@@ -26,6 +26,7 @@ Feature: Extract Method Object
             --- a/vfs://project/src/Foo.php
             +++ b/vfs://project/src/Foo.php
             @@ -3,6 +3,7 @@
+             {
                  public function operation()
                  {
             -        echo "Hello World";
@@ -33,6 +34,7 @@ Feature: Extract Method Object
             +        $object->invoke();
                  }
              }
+
             --- a/src/Bar.php
             +++ b/src/Bar.php
             @@ -0,0 +1,10 @@

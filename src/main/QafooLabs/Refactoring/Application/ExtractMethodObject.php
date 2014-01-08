@@ -72,7 +72,8 @@ class ExtractMethodObject
             $methodVariables->variablesFromSelectionUsedAfter($extractVariables)
         );
 
-        $buffer = $this->writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode);
+        $this->replaceCodeWithCall($file, $newClassName);
+        $this->writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode);
 
         $this->editor->save();
     }
@@ -84,14 +85,8 @@ class ExtractMethodObject
         }
     }
 
-    private function replaceCodeWithCall($file, $newClassName, $newFileName)
+    private function writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode)
     {
-        $buffer = $this->editor->openBuffer($file);
-        $buffer->replace($this->extractRange, array(
-            '        $object = new ' . $newClassName . '();',
-            '        $object->invoke();'
-        ));
-
         $buffer = $this->editor->openBuffer(new File($newFileName, ''));
 
         $buffer->append(0, array(
@@ -101,18 +96,20 @@ class ExtractMethodObject
             ' {',
         ));
 
-        return $buffer;
-    }
-
-    private function writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode)
-    {
-        $buffer = $this->replaceCodeWithCall($file, $newClassName, $newFileName);
-
         $session = new EditingSession($buffer);
         $session->addMethod(0, $newMethod, $selectedCode);
 
         $buffer->append(0, array('}'));
-
-        return $buffer;
     }
+
+    private function replaceCodeWithCall($file, $newClassName)
+    {
+        $buffer = $this->editor->openBuffer($file);
+        $buffer->replace($this->extractRange, array(
+            '        $object = new ' . $newClassName . '();',
+            '        $object->invoke();'
+        ));
+
+    }
+
 }
