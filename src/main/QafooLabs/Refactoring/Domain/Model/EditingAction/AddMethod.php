@@ -76,11 +76,24 @@ class AddMethod implements EditingAction
     private function getNewMethodSignatureString()
     {
         return sprintf(
-            'private %sfunction %s(%s)',
+            '%s %sfunction %s(%s)',
+            $this->getAccessSpecifier(),
             ($this->newMethod->isStatic() ? 'static ' : ''),
             $this->newMethod->getName(),
             $this->createVariableList($this->newMethod->arguments())
         );
+    }
+
+    /**
+     * @return string
+     */
+    private function getAccessSpecifier()
+    {
+        if ($this->newMethod->isPrivate()) {
+            return 'private';
+        }
+
+        return 'public';
     }
 
     /**

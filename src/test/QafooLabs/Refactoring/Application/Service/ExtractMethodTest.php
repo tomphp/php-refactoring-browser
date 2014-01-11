@@ -23,12 +23,13 @@ class ExtractMethodTest extends \PHPUnit_Framework_TestCase
         $this->refactoring = new ExtractMethod($scanner, $codeAnalysis, $editor);
     }
 
+
     /**
      * @group integration
      */
     public function testRefactorSimpleMethod()
     {
-        $patch = $this->refactoring->refactor(new File("foo.php", <<<'PHP'
+        $this->setRefactoringParameters('foo.php', '6-6', 'helloWorld', <<<'PHP'
 <?php
 class Foo
 {
@@ -38,8 +39,10 @@ class Foo
     }
 }
 PHP
-            ), LineRange::fromString("6-6"), "helloWorld");
+);
 
+
+        $patch = $this->refactoring->refactor();
 
         \Phake::verify($this->applyCommand)->apply(<<<'CODE'
 --- a/foo.php
@@ -69,7 +72,7 @@ CODE
     {
         $this->markTestIncomplete('Failing over some invisible whitespace issue?');
 
-        $patch = $this->refactoring->refactor(new File("foo.php", <<<'PHP'
+        $this->setRefactoringParameters('foo.php', '9-10', 'extract', <<<'PHP'
 <?php
 class Foo
 {
@@ -85,8 +88,9 @@ class Foo
     }
 }
 PHP
-            ), LineRange::fromString("9-10"), "extract");
+);
 
+        $patch = $this->refactoring->refactor();
 
         \Phake::verify($this->applyCommand)->apply(<<<'CODE'
 --- a/foo.php
@@ -112,5 +116,14 @@ PHP
 
 CODE
         );
+    }
+
+    private function setRefactoringParameters($filename, $rangeString, $methodName, $code)
+    {
+        $this->refactoring->setFile(new File($filename, $code));
+
+        $this->refactoring->setExtractRange(LineRange::fromString($rangeString));
+
+        $this->refactoring->setNewMethodName($methodName);
     }
 }

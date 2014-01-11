@@ -72,16 +72,17 @@ HELP
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $file = File::createFromPath($input->getArgument('file'), getcwd());
-        $range = LineRange::fromString($input->getArgument('range'));
-        $newMethodName = $input->getArgument('newmethod');
+        $refactoring = new ExtractMethod(
+            new ParserVariableScanner(),
+            new StaticCodeAnalysis(),
+            new PatchEditor(new OutputPatchCommand($output))
+        );
 
-        $scanner = new ParserVariableScanner();
-        $codeAnalysis = new StaticCodeAnalysis();
-        $editor = new PatchEditor(new OutputPatchCommand($output));
+        $refactoring->setFile(File::createFromPath($input->getArgument('file'), getcwd()));
+        $refactoring->setExtractRange(LineRange::fromString($input->getArgument('range')));
+        $refactoring->setNewMethodName($input->getArgument('newmethod'));
 
-        $extractMethod = new ExtractMethod($scanner, $codeAnalysis, $editor);
-        $extractMethod->refactor($file, $range, $newMethodName);
+        $refactoring->refactor();
     }
 }
 

@@ -42,6 +42,7 @@ Feature: Extract Method Object
             +
             +class Bar
             +{
+            +
             +    public function invoke()
             +    {
             +        echo "Hello World";

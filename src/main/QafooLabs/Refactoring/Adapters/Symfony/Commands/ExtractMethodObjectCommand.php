@@ -79,11 +79,11 @@ HELP
             new PatchEditor(new OutputPatchCommand($output))
         );
 
-        $refactoring->refactor(
-            File::createFromPath($input->getArgument('file'), getcwd()),
-            LineRange::fromString($input->getArgument('range')),
-            $input->getArgument('newfile'),
-            $input->getArgument('newclass')
-        );
+        $refactoring->setFile(File::createFromPath($input->getArgument('file'), getcwd()));
+        $refactoring->setExtractRange(LineRange::fromString($input->getArgument('range')));
+        $refactoring->setNewFileName($input->getArgument('newfile'));
+        $refactoring->setNewClassName($input->getArgument('newclass'));
+
+        $refactoring->refactor();
     }
 }

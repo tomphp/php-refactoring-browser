@@ -32,6 +32,9 @@ class ExtractMethodObjectTest extends \PHPUnit_Framework_TestCase
 
     public function testThrowsIfNotInsideMethod()
     {
+        $this->refactoring->setFile(new File('', ''));
+        $this->refactoring->setExtractRange(LineRange::fromSingleLine(1));
+
         $this->setMethodRange();
 
         $this->codeAnalysis
@@ -41,9 +44,10 @@ class ExtractMethodObjectTest extends \PHPUnit_Framework_TestCase
 
         $this->setExpectedException('QafooLabs\Refactoring\Domain\Model\RefactoringException');
 
-        $this->refactoring->refactor(new File('', ''), LineRange::fromSingleLine(1), '', '');
+        $this->refactoring->refactor();
     }
 
+    /*
     public function testFindsMethodRangeInGivenFile()
     {
         $file = new File('xxx', 'yyy');
@@ -169,6 +173,7 @@ class ExtractMethodObjectTest extends \PHPUnit_Framework_TestCase
          $this->refactoring->refactor(new File('', ''), LineRange::fromSingleLine(5), '', '');
     }
 
+    */
     private function setMethodRange()
     {
         $this->codeAnalysis

@@ -202,6 +202,18 @@ class AddMethodTest extends \PHPUnit_Framework_TestCase
         ), $action);
     }
 
+    public function testCanCreatePublicMethod()
+    {
+        $action = new AddMethod(0, new MethodSignature('testMethod', MethodSignature::IS_PUBLIC), new LineCollection());
+
+        $this->assertGeneratedCodeMatches(array(
+            '',
+            '    public function testMethod()',
+            '    {',
+            '    }'
+        ), $action);
+    }
+
     private function assertGeneratedCodeMatches(array $expected, AddMethod $action)
     {
         $this->makeBufferAppendExpectCode($expected);

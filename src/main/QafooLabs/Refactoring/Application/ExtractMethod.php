@@ -23,24 +23,41 @@ class ExtractMethod extends SingleFileRefactoring
     /**
      * @var LineRange
      */
-    private $extractRange;
+    protected $extractRange;
 
     /**
      * @var MethodSignature
      */
-    private $newMethod;
+    protected $newMethod;
+
+    /**
+     * @var string
+     */
+    protected $newMethodName;
+
+    public function setFile(File $file)
+    {
+        $this->file = $file;
+    }
+
+    public function setExtractRange(LineRange $extractRange)
+    {
+        $this->extractRange = $extractRange;
+    }
+
+    public function setNewMethodName($name)
+    {
+        $this->newMethodName = $name;
+    }
 
     /**
      * @param string $newMethodName
      */
-    public function refactor(File $file, LineRange $extractRange, $newMethodName)
+    public function refactor()
     {
-        $this->file = $file;
-        $this->extractRange = $extractRange;
-
         $this->assertIsInsideMethod();
 
-        $this->createNewMethodSignature($newMethodName);
+        $this->createNewMethodSignature();
 
         $this->startEditingSession();
         $this->replaceCodeWithMethodCall();
@@ -55,22 +72,37 @@ class ExtractMethod extends SingleFileRefactoring
         }
     }
 
-    private function createNewMethodSignature($newMethodName)
+    protected function createNewMethodSignature()
     {
-        $extractVariables = $this->variableScanner->scanForVariables($this->file, $this->extractRange);
-        $methodVariables = $this->variableScanner->scanForVariables($this->file, $this->findMethodRange());
+        $extractVariables = $this->variableScanner
+                                 ->scanForVariables($this->file, $this->extractRange);
+        $methodVariables = $this->variableScanner
+                                ->scanForVariables($this->file, $this->findMethodRange());
 
-        $isStatic = $this->codeAnalysis->isMethodStatic($this->file, $this->extractRange);
+        $isStatic = $this->codeAnalysis
+                         ->isMethodStatic($this->file, $this->extractRange);
+
+        $methodFlags = ($isStatic ? MethodSignature::IS_STATIC : 0);
+
+        $methodFlags |= $this->getMethodAccessSpecifier();
 
         $this->newMethod = new MethodSignature(
-            $newMethodName,
-            $isStatic ? MethodSignature::IS_STATIC : 0,
+            $this->newMethodName,
+            $methodFlags,
             $methodVariables->variablesFromSelectionUsedBefore($extractVariables),
             $methodVariables->variablesFromSelectionUsedAfter($extractVariables)
         );
     }
 
-    private function addNewMethod()
+    /**
+     * @return int
+     */
+    protected function getMethodAccessSpecifier()
+    {
+        return MethodSignature::IS_PRIVATE;
+    }
+
+    protected function addNewMethod()
     {
         $this->session->addEdit(new AddMethod(
             $this->findMethodRange()->getEnd(),
@@ -79,7 +111,7 @@ class ExtractMethod extends SingleFileRefactoring
         ));
     }
 
-    private function replaceCodeWithMethodCall()
+    protected function replaceCodeWithMethodCall()
     {
         $this->session->addEdit(new ReplaceWithMethodCall(
             $this->extractRange,
@@ -87,12 +119,12 @@ class ExtractMethod extends SingleFileRefactoring
         ));
     }
 
-    private function findMethodRange()
+    protected function findMethodRange()
     {
         return $this->codeAnalysis->findMethodRange($this->file, $this->extractRange);
     }
 
-    private function getSelectedCode()
+    protected function getSelectedCode()
     {
         return LineCollection::createFromArray(
             $this->extractRange->sliceCode($this->file->getCode())

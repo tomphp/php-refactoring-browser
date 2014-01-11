@@ -11,105 +11,94 @@ use QafooLabs\Refactoring\Domain\Model\RefactoringException;
 use QafooLabs\Refactoring\Domain\Services\VariableScanner;
 use QafooLabs\Refactoring\Domain\Services\CodeAnalysis;
 use QafooLabs\Refactoring\Domain\Services\Editor;
+use QafooLabs\Refactoring\Domain\Model\EditingAction\AddMethod;
 
 /**
  * Extract Method Refactoring
  */
-class ExtractMethodObject
+class ExtractMethodObject extends ExtractMethod
 {
     const DEFAULT_METHOD_NAME = 'invoke';
 
     /**
-     * @var VariableScanner
+     * @var string
      */
-    private $variableScanner;
-
-    /**
-     * @var CodeAnalysis
-     */
-    private $codeAnalysis;
-
-    /**
-     * @var Editor
-     */
-    private $editor;
-
-    private $file;
-    private $extractRange;
     private $newFileName;
+
+    /**
+     * @var string
+     */
     private $newClassName;
 
-    public function __construct(VariableScanner $variableScanner, CodeAnalysis $codeAnalysis, Editor $editor)
+    /**
+     * @param string $name
+     */
+    public function setNewFileName($name)
     {
-        $this->variableScanner = $variableScanner;
-        $this->codeAnalysis = $codeAnalysis;
-        $this->editor = $editor;
+        $this->newFileName = $name;
+    }
+
+    public function setNewClassName($name)
+    {
+        $this->newClassName = $name;
+    }
+
+    public function refactor()
+    {
+        $this->assertIsInsideMethod();
+
+        $this->setNewMethodName(self::DEFAULT_METHOD_NAME);
+        $this->createNewMethodSignature();
+
+        $this->startEditingSession();
+
+        $this->replaceCodeWithClassMethodCall();
+
+        $this->writeNewClass();
+
+        $this->completeEditingSession();
     }
 
     /**
-     * @param string $newFileName
-     * @param string $newClassName
+     * @return int
      */
-    public function refactor(File $file, LineRange $extractRange, $newFileName, $newClassName)
+    protected function getMethodAccessSpecifier()
     {
-        $this->file         = $file;
-        $this->extractRange = $extractRange;
-        $this->newFileName  = $newFileName;
-        $this->newClassName = $this->newClassName;
-
-        $this->assertSelectedRangeIsInsideMethod();
-
-        $methodRange = $this->codeAnalysis->findMethodRange($this->file, $this->extractRange);
-        $selectedCode = $this->extractRange->sliceCode($this->file->getCode());
-
-        $extractVariables = $this->variableScanner->scanForVariables($this->file, $this->extractRange);
-        $methodVariables = $this->variableScanner->scanForVariables($this->file, $methodRange);
-
-        $newMethod = new MethodSignature(
-            self::DEFAULT_METHOD_NAME,
-            MethodSignature::IS_PUBLIC,
-            $methodVariables->variablesFromSelectionUsedBefore($extractVariables),
-            $methodVariables->variablesFromSelectionUsedAfter($extractVariables)
-        );
-
-        $this->replaceCodeWithCall($file, $newClassName);
-        $this->writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode);
-
-        $this->editor->save();
+        return MethodSignature::IS_PUBLIC;
     }
 
-    private function assertSelectedRangeIsInsideMethod()
+    private function writeNewClass()
     {
-        if ( ! $this->codeAnalysis->isInsideMethod($this->file, $this->extractRange)) {
-            throw RefactoringException::rangeIsNotInsideMethod($this->extractRange);
-        }
-    }
+        $buffer = $this->editor->openBuffer(new File($this->newFileName, ''));
 
-    private function writeNewClass($file, $newClassName, $newFileName, $newMethod, $selectedCode)
-    {
-        $buffer = $this->editor->openBuffer(new File($newFileName, ''));
+        // Mixture of direct buffer edits and EditingSession here is not
+        // ideal. Really should all be done via EditingSession.
 
         $buffer->append(0, array(
             '<?php',
             '',
-            'class ' . $newClassName,
-            ' {',
+            'class ' . $this->newClassName,
+            '{',
         ));
 
         $session = new EditingSession($buffer);
-        $session->addMethod(0, $newMethod, $selectedCode);
+
+        $session->addEdit(new AddMethod(0, $this->newMethod, $this->getSelectedCode()));
+
+        $session->performEdits();
 
         $buffer->append(0, array('}'));
     }
 
-    private function replaceCodeWithCall($file, $newClassName)
+    private function replaceCodeWithClassMethodCall()
     {
-        $buffer = $this->editor->openBuffer($file);
+        // Should be done via and EditingAction
+
+        $buffer = $this->editor->openBuffer($this->file);
+
         $buffer->replace($this->extractRange, array(
-            '        $object = new ' . $newClassName . '();',
-            '        $object->invoke();'
+            '        $object = new ' . $this->newClassName . '();',
+            '        $object->' . $this->newMethodName . '();'
         ));
-
     }
-
 }
